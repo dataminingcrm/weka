@@ -1,4 +1,5 @@
 config.properties
+test.properties
 /target
 /bin
 .classpath
