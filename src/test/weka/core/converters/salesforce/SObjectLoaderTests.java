@@ -10,6 +10,7 @@ import com.sforce.soap.partner.QueryResult;
 
 import weka.core.Attribute;
 import weka.datagenerators.salesforce.ConfigurableTest;
+import weka.salesforce.attributes.AttributeStrategy;
 
 public class SObjectLoaderTests extends ConfigurableTest {
 
@@ -61,16 +62,9 @@ public class SObjectLoaderTests extends ConfigurableTest {
 		dataLoader.setRelationName("Opportunity");
 		dataLoader.setQuery("SELECT * FROM Opportunity LIMIT 10");
 		Assert.assertFalse( dataLoader.validate().hasErrors() );
-		Map<String, Attribute> attributes = dataLoader.getAttributes();
-		Assert.assertTrue( attributes.size() > 0 );
-		for(String key : attributes.keySet()){
-			Attribute attrib = attributes.get(key);
-			//System.out.println( key + " ********* " + attrib.toString() );
-		}
-		//QueryResult result = dataLoader.getQueryResult();
-		//Assert.assertNotNull(result);
-		//Assert.assertTrue(result.getSize() > 0);
-		//Assert.assertNotNull(result.getRecords());
+		Map<String, AttributeStrategy> attributeStrategies = dataLoader.getAttributeStrategies();
+		Assert.assertTrue( attributeStrategies.size() > 0 );
+		Assert.assertTrue( dataLoader.getAttributes().size() > 0 );
 	}
 	
 	private SObjectLoader getConnectedLoader() throws Exception{

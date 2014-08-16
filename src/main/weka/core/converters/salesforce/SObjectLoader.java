@@ -21,6 +21,8 @@ import weka.core.Option;
 import weka.core.Utils;
 import weka.core.converters.DatabaseLoader;
 import weka.salesforce.SalesforceConnection;
+import weka.salesforce.attributes.AttributeStrategy;
+import weka.salesforce.attributes.AttributeStrategyFactory;
 
 public class SObjectLoader extends DatabaseLoader {	
 	private static final long serialVersionUID = 1L;
@@ -46,7 +48,6 @@ public class SObjectLoader extends DatabaseLoader {
 			SObject[] records = this.getQueryResult().getRecords();
 			
 			// Infer column attributes from first record
-			
 		} catch (ConnectionException e) {
 			e.printStackTrace();
 		}
@@ -104,30 +105,42 @@ public class SObjectLoader extends DatabaseLoader {
 		return null;
 	}
 	
-	private Map<String, Attribute> m_Attributes = null;
-	public Map<String, Attribute> getAttributes() throws ConnectionException{
-		if(m_Attributes == null){
+	public List<Attribute> getAttributes() throws ConnectionException{
+		List<Attribute> attributes = new ArrayList<Attribute>();
+		for(String key : this.getAttributeStrategies().keySet()){
+			attributes.add( this.getAttributeStrategies().get(key).getAttribute() );			
+		}
+		return attributes;
+	}
+	
+	private Map<String, AttributeStrategy> m_AttributeStrategy = null;
+	public Map<String, AttributeStrategy> getAttributeStrategies() throws ConnectionException{
+		if(m_AttributeStrategy == null){
 			if(this.validate().hasErrors()){
 				return null;
 			}
-			m_Attributes = new LinkedHashMap<String, Attribute>();
+			m_AttributeStrategy = new LinkedHashMap<String, AttributeStrategy>();
 			
 			Iterator<XmlObject> itr = this.getQueryResult().getRecords()[0].getChildren();
 			int columnIndex = 0;
 			while(itr.hasNext()) {
 				XmlObject element = (XmlObject) itr.next();
 				String attributeName = element.getName().getLocalPart();
-				// The type of field determines attribute type
 				Field f = this.getField(attributeName);
 				if( f == null ){
 					System.out.println("Couldn't find AttributeStrategy for field: " + attributeName);
 					continue;
 				}
-				System.out.println("Adding attribute: " + attributeName + " type:" + f.getName() );
-				m_Attributes.put(attributeName, new Attribute( attributeName, columnIndex++) );
+				AttributeStrategy strategy = AttributeStrategyFactory.buildStrategy(f, columnIndex++);
+				
+				Attribute attrib = strategy.buildAttribute();
+				//attrib.column columnIndex++
+				strategy.setAttribute( attrib );
+				//System.out.println("Adding attribute: " + attributeName + " type:" + f.getName() );
+				m_AttributeStrategy.put( attributeName, strategy );
 			}
 		}
-		return m_Attributes;
+		return m_AttributeStrategy;
 	}
 	
 	/*
@@ -139,36 +152,18 @@ public class SObjectLoader extends DatabaseLoader {
 	 * d = debug
 	 * S = random seed  
 	 */
+	@SuppressWarnings("unchecked")
 	public Enumeration<Option> listOptions(){
+		@SuppressWarnings("rawtypes")
 		Vector result = new Vector();
 		
-		result.addElement(new Option(
-	          "\tSalesforce Username.",
-	          "username", 1, "-username"));
-		
-		result.addElement(new Option(
-		          "\tSalesforce Password.",
-		          "password", 1, "-password"));
-
-		result.addElement(new Option(
-		          "\tSalesforce Security Token.",
-		          "token", 1, "-token"));
-		
-		result.addElement(new Option(
-		          "\tSalesforce Login URL.",
-		          "url", 1, "-url"));
-		
-		result.addElement(new Option(
-		          "\tSalesforce SOQL Query to be executed.",
-		          "query", 1, "-query"));
-		
-		result.addElement(new Option(
-		          "\tARFF Relation (Typically Salesforce object name).",
-		          "relation", 1, "-relation"));
-		
-		result.addElement(new Option(
-		          "\tSalesforce Field in query to be used as classifier.",
-		          "class", 1, "-class"));
+		result.addElement(new Option( "\tSalesforce Username.", "username", 1, "-username"));		
+		result.addElement(new Option( "\tSalesforce Password.", "password", 1, "-password"));
+		result.addElement(new Option( "\tSalesforce Security Token.", "token", 1, "-token"));		
+		result.addElement(new Option( "\tSalesforce Login URL.", "url", 1, "-url"));		
+		result.addElement(new Option( "\tSalesforce SOQL Query to be executed.", "query", 1, "-query"));		
+		result.addElement(new Option( "\tARFF Relation (Typically Salesforce object name).", "relation", 1, "-relation"));		
+		result.addElement(new Option( "\tSalesforce Field in query to be used as classifier.", "class", 1, "-class"));
 		
 		return result.elements();
 	}
@@ -198,20 +193,6 @@ public class SObjectLoader extends DatabaseLoader {
 	private String m_RelationName = null;
 	public void setRelationName(String rName){ this.m_RelationName = rName; }
 	public String getRelationName(){ return this.m_RelationName; }
-	
-	public String parseQuery(){
-		String query = this.getQuery();
-		if(query == null || query.equals("")){
-			return query;
-		}
-		if(query.toLowerCase().contains("select *")){
-			// Replace wildcard with all fields.
-			//sobjectName = query.toLowerCase().indexOf("from");
-			//this.getConnection().getAllFieldsByObject(sobjectName);
-		}
-		super.setQuery(query);
-		return query;
-	}
 	
 	private String m_Token = null;
 	public void setToken(String token){ this.m_Token = token; }

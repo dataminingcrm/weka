@@ -1,17 +1,20 @@
 package weka.salesforce.attributes;
 
+import weka.core.Attribute;
+
 import com.sforce.soap.partner.Field;
 
 public class BooleanAttributeStrategy extends AttributeStrategy {
 
-	public BooleanAttributeStrategy(Field f) {
-		super(f);
+	public BooleanAttributeStrategy(Field f, int i) {
+		super(f, i);
 	}
 
 	@Override
-	public void renderAttribute() {
+	public Attribute buildAttribute() {
+		return new Attribute( sField.getName(), this.getIndex() );
 		//System.out.println(ATTRIBUTE + " " + sField.getName() + INDENT + "NUMERIC");
-		System.out.println(ATTRIBUTE + " " + sField.getName() + INDENT + "{TRUE, FALSE}");		
+		//System.out.println(ATTRIBUTE + " " + sField.getName() + INDENT + "{TRUE, FALSE}");		
 	}
 
 	@Override

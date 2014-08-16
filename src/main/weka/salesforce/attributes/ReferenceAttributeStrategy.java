@@ -1,16 +1,19 @@
 package weka.salesforce.attributes;
 
+import weka.core.Attribute;
+
 import com.sforce.soap.partner.Field;
 
 public class ReferenceAttributeStrategy extends AttributeStrategy{
 
-	public ReferenceAttributeStrategy(Field f) {
-		super(f);
+	public ReferenceAttributeStrategy(Field f, int i) {
+		super(f, i);
 	}
 
 	@Override
-	public void renderAttribute() {
-		System.out.println( ATTRIBUTE + " " + sField.getName() + INDENT + "STRING");
+	public Attribute buildAttribute() {
+		return new Attribute( sField.getName(), this.getIndex() );
+		//System.out.println( ATTRIBUTE + " " + sField.getName() + INDENT + "STRING");
 	}
 
 	@Override
