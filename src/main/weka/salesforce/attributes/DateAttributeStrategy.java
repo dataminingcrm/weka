@@ -1,5 +1,7 @@
 package weka.salesforce.attributes;
 
+import java.text.ParseException;
+
 import org.joda.time.DateTime;
 
 import weka.core.Attribute;
@@ -18,18 +20,29 @@ public class DateAttributeStrategy extends AttributeStrategy{
 	}
 	
 	@Override
-	public String getValue(Object value){
+	public String getValue(Object value){		
 		DateTime dt = new DateTime(value);
 		return dt.toString("yyyy-MM-dd");
 	}
 	
 	@Override
+	public Double getNumericValue(Object value){
+		Double timestamp = 0.0;
+		try {
+			timestamp = this.getAttribute().parseDate( value.toString() );
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return timestamp;
+	}
+	
+	@Override
 	public boolean isNumeric() {		
-		return false;
+		return true;
 	}
 	
 	@Override
 	public boolean isString() {		
-		return true;
+		return false;
 	}
 }
