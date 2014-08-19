@@ -15,9 +15,14 @@ public class PercentAttributeStrategy extends AttributeStrategy{
 		return new Attribute( sField.getName(), this.getIndex() );
 		//System.out.println( ATTRIBUTE + " " + sField.getName() + INDENT + "NUMERIC");
 	}
-
+	
 	@Override
-	public void renderData(Object value) {
-		System.out.print(value == null ? "0.00":value.toString());
+	public boolean isNumeric() {
+		return true;
+	}
+	
+	@Override
+	public boolean isString() {
+		return false;
 	}
 }

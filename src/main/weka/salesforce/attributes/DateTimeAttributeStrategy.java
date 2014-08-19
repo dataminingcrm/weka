@@ -12,12 +12,16 @@ public class DateTimeAttributeStrategy extends AttributeStrategy{
 	
 	@Override
 	public Attribute buildAttribute() {
-		return new Attribute( sField.getName(), this.getIndex() );
-		//System.out.println( ATTRIBUTE + " " + sField.getName() + INDENT + "DATE [yyyy-MM-dd'T'HH:mm:ss]");
+		return new Attribute(sField.getName(), "yyyy-MM-dd'T'HH:mm:ss", this.getIndex()); //ISO-8601 compliant date string
 	}
-	
+		
 	@Override
-	public void renderData(Object value) {
-		System.out.print("'" + (String)value + "'" );
+	public boolean isNumeric() {
+		return false;
+	}
+		
+	@Override
+	public boolean isString() {		
+		return true;
 	}
 }

@@ -1,10 +1,8 @@
 package weka.core.converters.salesforce;
 
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -15,18 +13,16 @@ import com.sforce.soap.partner.sobject.SObject;
 import com.sforce.ws.ConnectionException;
 import com.sforce.ws.bind.XmlObject;
 
-import weka.core.Attribute;
+import weka.core.FastVector;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.Option;
 import weka.core.Utils;
-import weka.core.converters.DatabaseLoader;
-import weka.salesforce.SalesforceConnection;
 import weka.salesforce.attributes.AttributeStrategy;
 import weka.salesforce.attributes.AttributeStrategyFactory;
 
-public class SObjectLoader extends DatabaseLoader {	
-	private static final long serialVersionUID = 1L;
-	public List<String> Errors = new ArrayList<String>();
+public class SObjectLoader extends SalesforceDataLoader {	
+	private static final long serialVersionUID = 1L;	
 	
 	public SObjectLoader() throws Exception {
 		super();
@@ -36,23 +32,35 @@ public class SObjectLoader extends DatabaseLoader {
 		return "1.0";
 	}
 	
-	public boolean hasErrors(){ return Errors.size() > 0; }
-	
 	@Override
 	public Instances getDataSet(){
-		try {
-			if( this.getQueryResult() == null || this.getQueryResult().getRecords().length == 0){
-				Errors.add("Query returned 0 rows. Could not generate data set.");
-				return this.m_structure;
+		if( m_structure == null){
+			try {
+				if( this.getQueryResult() == null || this.getQueryResult().getRecords().length == 0){
+					Errors.add("Query returned 0 rows. Could not generate data set.");
+					return this.m_structure;
+				}
+				m_structure = new Instances(this.getRelationName(), this.getAttributes(), this.getQueryResult().getRecords().length );
+				SObject[] records = this.getQueryResult().getRecords();
+				for(SObject obj : records){
+					Instance instance = new Instance( this.getAttributeStrategies().size() );
+					for(String fieldName : this.getAttributeStrategies().keySet()){
+						AttributeStrategy strategy = getAttributeStrategies().get(fieldName);
+						
+						if( strategy.isNumeric() ){
+							System.out.println("Adding numeric field. " + fieldName + "=" + strategy.getNumericValue( obj.getField(fieldName) ) + ". Strategy " +  strategy.getClass().toString());
+							instance.setValue(strategy.getAttribute(), strategy.getNumericValue( obj.getField(fieldName) ) );
+						} else {
+							System.out.println("Adding string field. " + fieldName + "=" + strategy.getValue( obj.getField(fieldName) ) + ". Strategy " +  strategy.getClass().toString());
+							instance.setValue(strategy.getAttribute(), strategy.getValue( obj.getField(fieldName) ) );
+						}
+					}
+				}
+			} catch (ConnectionException e) {
+				e.printStackTrace();
 			}
-			SObject[] records = this.getQueryResult().getRecords();
-			
-			// Infer column attributes from first record
-		} catch (ConnectionException e) {
-			e.printStackTrace();
 		}
-		
-		return m_structure;
+		return m_structure;		
 	}
 	
 	public SObjectLoader validate(){
@@ -97,7 +105,6 @@ public class SObjectLoader extends DatabaseLoader {
 	
 	private Field getField(String fieldName) throws ConnectionException{
 		for(Field f : getSObjectDescription().getFields()){
-			//System.out.println("getField compare " + f.getName() + ":" + fieldName);
 			if(f.getName().equals(fieldName)){
 				return f;
 			}
@@ -105,10 +112,10 @@ public class SObjectLoader extends DatabaseLoader {
 		return null;
 	}
 	
-	public List<Attribute> getAttributes() throws ConnectionException{
-		List<Attribute> attributes = new ArrayList<Attribute>();
+	public FastVector getAttributes() throws ConnectionException{
+		FastVector attributes = new FastVector();
 		for(String key : this.getAttributeStrategies().keySet()){
-			attributes.add( this.getAttributeStrategies().get(key).getAttribute() );			
+			attributes.addElement( this.getAttributeStrategies().get(key).getAttribute() );			
 		}
 		return attributes;
 	}
@@ -132,11 +139,6 @@ public class SObjectLoader extends DatabaseLoader {
 					continue;
 				}
 				AttributeStrategy strategy = AttributeStrategyFactory.buildStrategy(f, columnIndex++);
-				
-				Attribute attrib = strategy.buildAttribute();
-				//attrib.column columnIndex++
-				strategy.setAttribute( attrib );
-				//System.out.println("Adding attribute: " + attributeName + " type:" + f.getName() );
 				m_AttributeStrategy.put( attributeName, strategy );
 			}
 		}
@@ -174,7 +176,7 @@ public class SObjectLoader extends DatabaseLoader {
 				
 		this.m_User 	= Utils.getOption("username", options);
 		this.m_Password = Utils.getOption("password", options);
-		this.m_Token	= Utils.getOption("token", options);
+		this.setToken( Utils.getOption("token", options) );
 		this.m_URL		= Utils.getOption("url", options);
 		this.m_RelationName	= Utils.getOption("relation", options);
 		this.m_Classifier= Utils.getOption("class", options);
@@ -193,25 +195,4 @@ public class SObjectLoader extends DatabaseLoader {
 	private String m_RelationName = null;
 	public void setRelationName(String rName){ this.m_RelationName = rName; }
 	public String getRelationName(){ return this.m_RelationName; }
-	
-	private String m_Token = null;
-	public void setToken(String token){ this.m_Token = token; }
-	public String getToken(){ return this.m_Token; }
-	
-	private SalesforceConnection m_Connection = null;
-	public SalesforceConnection getConnection(){
-		if(m_Connection == null){
-			m_Connection = new SalesforceConnection()
-				.withUsername( this.getUser() )
-				.withPassword( this.getPassword() )
-				.withSecurityToken( this.getToken() )
-				.withLoginUrl( this.getUrl() )
-				.connectWithUserCredentials();
-			
-			if( !m_Connection.isValid() ){
-				System.err.println("Could not establish Salesforce connection. Please check config.properties file.");
-			}
-		}
-		return m_Connection;
-	}
 }

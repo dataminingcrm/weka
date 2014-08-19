@@ -1,8 +1,10 @@
 package weka.salesforce.attributes;
 
 import weka.core.Attribute;
+import weka.core.FastVector;
 
 import com.sforce.soap.partner.Field;
+import com.sforce.soap.partner.PicklistEntry;
 
 public class BooleanAttributeStrategy extends AttributeStrategy {
 
@@ -12,14 +14,31 @@ public class BooleanAttributeStrategy extends AttributeStrategy {
 
 	@Override
 	public Attribute buildAttribute() {
-		return new Attribute( sField.getName(), this.getIndex() );
-		//System.out.println(ATTRIBUTE + " " + sField.getName() + INDENT + "NUMERIC");
-		//System.out.println(ATTRIBUTE + " " + sField.getName() + INDENT + "{TRUE, FALSE}");		
+		FastVector attributeValues = new FastVector(2);
+		attributeValues.addElement("TRUE");
+		attributeValues.addElement("FALSE");
+		
+		this.setAttribute( new Attribute( sField.getName(), attributeValues,  this.getIndex() ) );
+		return this.getAttribute();
+	}
+	
+	@Override
+	public String getValue(Object value) {
+		return value.toString().toLowerCase().equals("true") ? "TRUE":"FALSE";
 	}
 
 	@Override
-	public void renderData(Object value) {
-		//System.out.print( value.toString().toLowerCase().equals("true") ? "1":"0" );
-		System.out.print( value.toString().toLowerCase().equals("true") ? "TRUE":"FALSE" );
+	public boolean isNumeric() {		
+		return false;
+	}
+
+	@Override
+	public Double getNumericValue(Object value) {
+		return value.toString().toLowerCase().equals("true") ? 1.0:0.0;
+	}
+
+	@Override
+	public boolean isString() {
+		return true;
 	}
 }

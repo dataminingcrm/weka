@@ -17,7 +17,12 @@ public class IntAttributeStrategy extends AttributeStrategy{
 	}
 
 	@Override
-	public void renderData(Object value) {
-		System.out.print(value == null ? "0":value.toString());
+	public boolean isNumeric() {		
+		return true;
+	}
+
+	@Override
+	public boolean isString() {
+		return false;
 	}
 }

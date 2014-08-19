@@ -1,6 +1,7 @@
 package weka.salesforce.attributes;
 
 import weka.core.Attribute;
+import weka.core.FastVector;
 
 import com.sforce.soap.partner.Field;
 import com.sforce.soap.partner.PicklistEntry;
@@ -13,19 +14,24 @@ public class ComboBoxAttributeStrategy extends AttributeStrategy{
 	
 	@Override
 	public Attribute buildAttribute() {
-		return new Attribute( sField.getName(), this.getIndex() );
-		/*
-		String nominalValues = "";
+		int size = this.sField.getPicklistValues().length;
+		FastVector attributeValues = new FastVector(size);
+		
 		for(PicklistEntry entry : this.sField.getPicklistValues()){
-			nominalValues += entry.getValue() + ",";
+			attributeValues.addElement(entry.getValue());
 		}
-		nominalValues = nominalValues.substring(0, nominalValues.length() - 1);
-		System.out.println(ATTRIBUTE + " " + sField.getName() + INDENT + "{" + nominalValues + "}");
-		*/		
+		
+		this.setAttribute( new Attribute( sField.getName(), attributeValues,  this.getIndex() ) );
+		return this.getAttribute();
 	}
-	
+
 	@Override
-	public void renderData(Object value) {
-		System.out.print("'" + (String)value + "'" );
+	public boolean isNumeric() {
+		return false;
+	}
+
+	@Override
+	public boolean isString() {		
+		return true;
 	}
 }

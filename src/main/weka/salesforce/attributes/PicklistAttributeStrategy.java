@@ -1,6 +1,7 @@
 package weka.salesforce.attributes;
 
 import weka.core.Attribute;
+import weka.core.FastVector;
 
 import com.sforce.soap.partner.Field;
 import com.sforce.soap.partner.PicklistEntry;
@@ -10,27 +11,40 @@ public class PicklistAttributeStrategy extends AttributeStrategy{
 	public PicklistAttributeStrategy(Field f, int i) {
 		super(f, i);
 	}
-	
+		
 	@Override
 	public Attribute buildAttribute() {
-		return new Attribute( sField.getName(), this.getIndex() );
-		/*
-		String nominalValues = "";
+		// TODO: This attribute only includes pre-defined picklist values.
+		// Ad-hoc values may appear in the data that are not defined here.
+		// Consider a 2-pass filter that sets range of nominal values based on actual data.
+		int size = this.sField.getPicklistValues().length;
+		FastVector attributeValues = new FastVector(size);
+		
 		for(PicklistEntry entry : this.sField.getPicklistValues()){
-			nominalValues += "'" + entry.getValue() + "',";
+			attributeValues.addElement(entry.getValue());
 		}
-		nominalValues = nominalValues.substring(0, nominalValues.length() - 1);
-		System.out.println(ATTRIBUTE + " " + sField.getName() + INDENT + "{" + nominalValues + "}");
-		*/
+		
+		this.setAttribute( new Attribute( sField.getName(), attributeValues,  this.getIndex() ) );
+		return this.getAttribute();
 	}
 	
 	@Override
-	public void renderData(Object value) {
+	public String getValue(Object value) {
 		/* BUG: Actual picklist values may not be defined in PicklistEntry collection when arbitrary values are allowed.
 		 * Resolution options:
 		 * a) Pre-scan with 2 pass filter on training set to accumulate list of actual picklist values
 		 * b) Ignore arbitrary picklist values 
 		 */
-		System.out.print("'" + (String)value + "'" );
+		return value == null ? "" : (String)value;
+	}
+
+	@Override
+	public boolean isNumeric() {
+		return false;
+	}
+
+	@Override
+	public boolean isString() {		
+		return true;
 	}
 }

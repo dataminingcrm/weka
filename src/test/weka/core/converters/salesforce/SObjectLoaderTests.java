@@ -1,6 +1,5 @@
 package weka.core.converters.salesforce;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import junit.framework.Assert;
@@ -8,7 +7,6 @@ import org.junit.Test;
 
 import com.sforce.soap.partner.QueryResult;
 
-import weka.core.Attribute;
 import weka.datagenerators.salesforce.ConfigurableTest;
 import weka.salesforce.attributes.AttributeStrategy;
 
@@ -34,11 +32,11 @@ public class SObjectLoaderTests extends ConfigurableTest {
 		dataLoader.setPassword( SFDC_PASSWORD );
 		dataLoader.setToken( SFDC_TOKEN );
 		
-		Assert.assertEquals(true, dataLoader.getConnection().isValid() ); // Future tests require a valid connection.		
+		Assert.assertEquals(true, dataLoader.getConnection().isValid() ); // Future tests require a valid connection.
 	}
 	
 	@Test
-	public void basicQueryTests() throws Exception{
+	public void wildcardQueryTests() throws Exception{
 		SObjectLoader dataLoader = this.getConnectedLoader();
 		dataLoader.setQuery("SELECT * FROM Opportunity LIMIT 10");
 		QueryResult result = dataLoader.getQueryResult();
@@ -57,6 +55,18 @@ public class SObjectLoaderTests extends ConfigurableTest {
 	}
 	
 	@Test
+	public void basicQueryTests() throws Exception{
+		SObjectLoader dataLoader = this.getConnectedLoader();
+		dataLoader.setRelationName("Opportunity");
+		dataLoader.setQuery("SELECT Id, Name, CreatedDate, Amount, StageName FROM Opportunity LIMIT 10");		
+		QueryResult result = dataLoader.getQueryResult();
+		Assert.assertNotNull(result);
+		Assert.assertFalse(dataLoader.hasErrors());
+		Assert.assertEquals(5, dataLoader.getAttributeStrategies().size());
+		Assert.assertEquals(5, dataLoader.getAttributes().size());
+	}
+	
+	@Test
 	public void attributeGenerationTests() throws Exception{
 		SObjectLoader dataLoader = this.getConnectedLoader();
 		dataLoader.setRelationName("Opportunity");
@@ -67,23 +77,12 @@ public class SObjectLoaderTests extends ConfigurableTest {
 		Assert.assertTrue( dataLoader.getAttributes().size() > 0 );
 	}
 	
-	private SObjectLoader getConnectedLoader() throws Exception{
-		Properties props = this.config();
-		
-		final String SFDC_USERNAME 	= props.getProperty("username");
-		final String SFDC_PASSWORD 	= props.getProperty("password");
-		final String SFDC_TOKEN 	= props.getProperty("token");
-		final String SFDC_URL 		= props.getProperty("url");
-		
-		SObjectLoader dataLoader = new SObjectLoader();
-		
-		dataLoader.setUrl( SFDC_URL );
-		dataLoader.setUser( SFDC_USERNAME );
-		dataLoader.setPassword( SFDC_PASSWORD );
-		dataLoader.setToken( SFDC_TOKEN );
-		
-		dataLoader.getConnection().isValid();
-		
-		return dataLoader;
+	@Test
+	public void getDataSetTests() throws Exception{
+		SObjectLoader dataLoader = this.getConnectedLoader();
+		dataLoader.setRelationName("Opportunity");
+		dataLoader.setQuery("SELECT * FROM Opportunity LIMIT 10");
+		Assert.assertFalse( dataLoader.validate().hasErrors() );
+		Assert.assertNotNull( dataLoader.getDataSet() );
 	}
 }

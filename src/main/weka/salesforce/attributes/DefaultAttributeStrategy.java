@@ -1,6 +1,7 @@
 package weka.salesforce.attributes;
 
 import weka.core.Attribute;
+import weka.core.FastVector;
 
 import com.sforce.soap.partner.Field;
 
@@ -12,12 +13,17 @@ public class DefaultAttributeStrategy extends AttributeStrategy {
 
 	@Override
 	public Attribute buildAttribute() {
-		return new Attribute( sField.getName(), this.getIndex() );
-		//System.out.println( ATTRIBUTE + " " + sField.getName() + INDENT + "STRING");
+		// String attribute type
+		return new Attribute( sField.getName(), (FastVector) null, this.getIndex() );
+	}
+	
+	@Override
+	public boolean isNumeric() {		
+		return false;
 	}
 
 	@Override
-	public void renderData(Object value) {
-		System.out.print("'" + (String)value + "'" );
+	public boolean isString() {		
+		return true;
 	}
 }
