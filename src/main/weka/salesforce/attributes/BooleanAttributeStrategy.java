@@ -28,17 +28,7 @@ public class BooleanAttributeStrategy extends AttributeStrategy {
 	}
 
 	@Override
-	public boolean isNumeric() {		
-		return false;
-	}
-
-	@Override
 	public Double getNumericValue(Object value) {
 		return value.toString().toLowerCase().equals("true") ? 1.0:0.0;
-	}
-
-	@Override
-	public boolean isString() {
-		return true;
 	}
 }

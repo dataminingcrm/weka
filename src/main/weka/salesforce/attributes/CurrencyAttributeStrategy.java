@@ -14,14 +14,4 @@ public class CurrencyAttributeStrategy extends AttributeStrategy{
 	public Attribute buildAttribute() {
 		return new Attribute( sField.getName(), this.getIndex() );
 	}
-		
-	@Override
-	public boolean isNumeric() {
-		return true;
-	}
-	
-	@Override
-	public boolean isString() {
-		return false;
-	}
 }

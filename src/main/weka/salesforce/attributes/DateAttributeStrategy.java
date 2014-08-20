@@ -35,14 +35,4 @@ public class DateAttributeStrategy extends AttributeStrategy{
 		}
 		return timestamp;
 	}
-	
-	@Override
-	public boolean isNumeric() {		
-		return true;
-	}
-	
-	@Override
-	public boolean isString() {		
-		return false;
-	}
 }

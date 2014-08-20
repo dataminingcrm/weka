@@ -24,14 +24,4 @@ public class ComboBoxAttributeStrategy extends AttributeStrategy{
 		this.setAttribute( new Attribute( sField.getName(), attributeValues,  this.getIndex() ) );
 		return this.getAttribute();
 	}
-
-	@Override
-	public boolean isNumeric() {
-		return false;
-	}
-
-	@Override
-	public boolean isString() {		
-		return true;
-	}
 }

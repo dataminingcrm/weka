@@ -16,14 +16,4 @@ public class ReferenceAttributeStrategy extends AttributeStrategy{
 		// String attribute type
 		return new Attribute( sField.getName(), (FastVector) null, this.getIndex() );
 	}
-		
-	@Override
-	public boolean isNumeric() {
-		return false;
-	}
-	
-	@Override
-	public boolean isString() {
-		return true;
-	}
 }

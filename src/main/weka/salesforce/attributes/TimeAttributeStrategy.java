@@ -15,15 +15,5 @@ public class TimeAttributeStrategy extends AttributeStrategy{
 	public Attribute buildAttribute() {
 		// String attribute type
 		return new Attribute( sField.getName(), (FastVector) null, this.getIndex() );
-	}
-	
-	@Override
-	public boolean isNumeric() {
-		return false;
-	}
-	
-	@Override
-	public boolean isString() {
-		return true;
-	}
+	}	
 }

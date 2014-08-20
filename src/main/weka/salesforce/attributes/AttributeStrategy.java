@@ -26,13 +26,11 @@ public abstract class AttributeStrategy {
 	public AttributeStrategy withIndex(int i){ m_Index = i; return this; }
 	public int getIndex(){ return m_Index; }
 	public abstract Attribute buildAttribute();
-	
-	public abstract boolean isNumeric();
+		
 	public Double getNumericValue(Object value){
 		return (value == null ? 0.0 : Double.valueOf(value.toString()) );
 	}
-	
-	public abstract boolean isString();
+		
 	public String getValue(Object value){
 		return (value == null ? "" : (String)value);
 	};

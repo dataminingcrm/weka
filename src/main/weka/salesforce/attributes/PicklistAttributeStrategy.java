@@ -11,7 +11,7 @@ public class PicklistAttributeStrategy extends AttributeStrategy{
 	public PicklistAttributeStrategy(Field f, int i) {
 		super(f, i);
 	}
-		
+	
 	@Override
 	public Attribute buildAttribute() {
 		// TODO: This attribute only includes pre-defined picklist values.
@@ -24,8 +24,7 @@ public class PicklistAttributeStrategy extends AttributeStrategy{
 			attributeValues.addElement(entry.getValue());
 		}
 		
-		this.setAttribute( new Attribute( sField.getName(), attributeValues,  this.getIndex() ) );
-		return this.getAttribute();
+		return new Attribute( sField.getName(), attributeValues,  this.getIndex() );
 	}
 	
 	@Override
@@ -36,15 +35,5 @@ public class PicklistAttributeStrategy extends AttributeStrategy{
 		 * b) Ignore arbitrary picklist values 
 		 */
 		return value == null ? "" : (String)value;
-	}
-
-	@Override
-	public boolean isNumeric() {
-		return false;
-	}
-
-	@Override
-	public boolean isString() {		
-		return true;
 	}
 }

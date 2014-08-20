@@ -75,7 +75,14 @@ public class SObjectLoaderTests extends ConfigurableTest {
 		Map<String, AttributeStrategy> attributeStrategies = dataLoader.getAttributeStrategies();
 		Assert.assertTrue( attributeStrategies.size() > 0 );
 		Assert.assertTrue( dataLoader.getAttributes().size() > 0 );
+		
+		Assert.assertNotNull( dataLoader.getAttribute("StageName") );
+		Assert.assertNull( dataLoader.getAttribute("foo") );
+		
+		// Modify Attribute tests
+		
 	}
+		
 	
 	@Test
 	public void getDataSetTests() throws Exception{
