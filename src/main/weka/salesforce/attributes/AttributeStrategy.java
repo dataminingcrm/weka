@@ -1,8 +1,12 @@
 package weka.salesforce.attributes;
 
+import java.util.Enumeration;
+
 import weka.core.Attribute;
+import weka.core.FastVector;
 
 import com.sforce.soap.partner.Field;
+import com.sforce.ws.ConnectionException;
 
 public abstract class AttributeStrategy {
 	public int m_Index = -1;
@@ -30,8 +34,36 @@ public abstract class AttributeStrategy {
 	public Double getNumericValue(Object value){
 		return (value == null ? 0.0 : Double.valueOf(value.toString()) );
 	}
-		
+	
 	public String getValue(Object value){
 		return (value == null ? "" : (String)value);
 	};
+	
+	public boolean containsValue(Object value) throws ConnectionException{
+		if(value == null || value.equals("")){
+			return true;
+		}
+		
+		Enumeration values = this.getAttribute().enumerateValues();
+		while (values.hasMoreElements()){
+			String s = (String) values.nextElement();
+			if( s.toLowerCase().equals(value.toString().toLowerCase() )){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public Attribute appendNominalValue(String value) throws ConnectionException{
+		Enumeration values = this.getAttribute().enumerateValues();
+		FastVector attributeValues = new FastVector();
+		while (values.hasMoreElements()){
+			attributeValues.addElement( (String) values.nextElement() );
+		}
+		attributeValues.addElement( value );
+		
+		Attribute newAttrib = new Attribute( this.getAttribute().name(), attributeValues, this.getAttribute().index() );
+		this.setAttribute(newAttrib);
+		return newAttrib;
+	}
 }

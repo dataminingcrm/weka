@@ -8,7 +8,6 @@ import java.util.Vector;
 
 import com.sforce.soap.partner.DescribeSObjectResult;
 import com.sforce.soap.partner.Field;
-import com.sforce.soap.partner.PicklistEntry;
 import com.sforce.soap.partner.QueryResult;
 import com.sforce.soap.partner.sobject.SObject;
 import com.sforce.ws.ConnectionException;
@@ -53,11 +52,12 @@ public class SObjectLoader extends SalesforceDataLoader {
 						}
 						AttributeStrategy strategy = getAttributeStrategies().get(fieldName);
 						
-						if( strategy.getAttribute().isNominal() ){
-							Attribute appendAttrib = appendNominalValue( strategy.getAttribute().name(), (String)value );
-							if(appendAttrib != null){
-								strategy.setAttribute(appendAttrib);
-							}
+						if( strategy.getAttribute().isNominal() && !strategy.containsValue(value) ){
+							System.out.println("********* Nominal attribute missing element: " + value + ". Appending...");
+							Attribute newAttrib = strategy.appendNominalValue( (String)value );
+							this.getAttributes().setElementAt(newAttrib, newAttrib.index());
+							System.out.println("********* Attribute after append.");
+							this.dumpAttribute(newAttrib.name());
 						}
 						
 						if( strategy.getAttribute().isNumeric() || strategy.getAttribute().isDate() ){
@@ -147,59 +147,28 @@ public class SObjectLoader extends SalesforceDataLoader {
 		}
 		return null;
 	}
-	
+		
 	// normalizeNominalValue
 	/*
 	 * Picklist field metadata defines nominal values.
 	 * Actual instances may contain picklist values not defined in metadata.
 	 * Check for new nominal values and append them here.
 	 */
-	public Attribute appendNominalValue(String attributeName, String value) throws ConnectionException{
-		Enumeration attribs = this.getAttributes().elements();
-		int index = 0;
-		System.out.println("Adding value " + value + " to nominal attribute " + attributeName);
-		if(value == null || value.equals("")){
-			return null;
+	/*
+	public Attribute appendNominalValue(Attribute attrib, String value) throws ConnectionException{
+		Enumeration values = attrib.enumerateValues();
+		FastVector attributeValues = new FastVector();
+		while (values.hasMoreElements()){
+			attributeValues.addElement( (String) values.nextElement() );
 		}
-		while (attribs.hasMoreElements()){
-			Attribute attrib = (Attribute) attribs.nextElement();
-			if(attrib.name().equals(attributeName)){
-				boolean valueFound = false;
-				Enumeration values = attrib.enumerateValues();
-				int valueCount = 0;
-				while (values.hasMoreElements()){
-					String s = (String) values.nextElement();
-					valueCount++;
-					System.out.println("*********Nominal value: " + s);
-					if(s.equals(value)){
-						valueFound = true;
-						break;
-					}
-				}
-				
-				if( !valueFound ){
-					System.out.println("!!!!!!! Nominal value not found.... appending to attribute.");
-					int size = valueCount + 1;
-					FastVector attributeValues = new FastVector(size);
-					
-					// TODO: Extract method
-					values = attrib.enumerateValues();
-					while (values.hasMoreElements()){
-						attributeValues.addElement( (String) values.nextElement() );
-					}
-					attributeValues.addElement( value );
-					
-					Attribute newAttrib = new Attribute( attributeName, attributeValues,  attrib.index() );
-					
-					this.getAttributes().setElementAt(newAttrib, index);
-					this.dumpAttribute(attributeName);
-					return newAttrib;
-				}
-			}
-			index++;
-		}
-		return null;
-	}
+		attributeValues.addElement( value );
+		
+		Attribute newAttrib = new Attribute( attrib.name(), attributeValues,  attrib.index() );
+		
+		this.getAttributes().setElementAt(newAttrib, attrib.index());
+		//this.dumpAttribute(attributeName);
+		return newAttrib;
+	}*/
 	
 	private void dumpAttribute(String name) throws ConnectionException{
 		System.out.println("Dumping attribute " + name);
