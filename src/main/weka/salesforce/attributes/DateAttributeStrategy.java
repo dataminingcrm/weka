@@ -29,7 +29,11 @@ public class DateAttributeStrategy extends AttributeStrategy{
 	public Double getNumericValue(Object value){
 		Double timestamp = 0.0;
 		try {
-			timestamp = this.getAttribute().parseDate( value.toString() );
+			if( value == null || value.equals("")){
+				timestamp = 0.0;
+			} else {
+				timestamp = this.getAttribute().parseDate( value.toString() );
+			}
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}

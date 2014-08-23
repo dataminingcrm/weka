@@ -47,21 +47,25 @@ public class SObjectLoader extends SalesforceDataLoader {
 				for(SObject obj : records){
 					Instance instance = new Instance( this.getAttributeStrategies().size() );
 					for(String fieldName : this.getAttributeStrategies().keySet()){
+						Object value = obj.getField(fieldName);
+						if(value == null){
+							continue;
+						}
 						AttributeStrategy strategy = getAttributeStrategies().get(fieldName);
 						
 						if( strategy.getAttribute().isNominal() ){
-							Attribute appendAttrib = appendNominalValue( strategy.getAttribute().name(), (String)obj.getField(fieldName));
+							Attribute appendAttrib = appendNominalValue( strategy.getAttribute().name(), (String)value );
 							if(appendAttrib != null){
 								strategy.setAttribute(appendAttrib);
 							}
 						}
 						
 						if( strategy.getAttribute().isNumeric() || strategy.getAttribute().isDate() ){
-							System.out.println("Adding numeric field. " + fieldName + "=" + strategy.getNumericValue( obj.getField(fieldName) ) + ". Strategy " +  strategy.getClass().toString());
+							System.out.println("Adding numeric field. " + fieldName + "=" + strategy.getNumericValue( value ) + ". Strategy " +  strategy.getClass().toString());
 							instance.setValue(strategy.getAttribute(), strategy.getNumericValue( obj.getField(fieldName) ) );
 						} else {
-							System.out.println("Adding string field. " + fieldName + "=" + strategy.getValue( obj.getField(fieldName) ) + ". Strategy " +  strategy.getClass().toString());
-							instance.setValue(strategy.getAttribute(), strategy.getValue( obj.getField(fieldName) ) );
+							System.out.println("Adding string field. " + fieldName + "=" + strategy.getValue( value ) + ". Strategy " +  strategy.getClass().toString());
+							instance.setValue(strategy.getAttribute(), strategy.getValue( value ) );
 						}
 					}
 				}
@@ -153,7 +157,10 @@ public class SObjectLoader extends SalesforceDataLoader {
 	public Attribute appendNominalValue(String attributeName, String value) throws ConnectionException{
 		Enumeration attribs = this.getAttributes().elements();
 		int index = 0;
-		System.out.println("Adding value " + value + " to attribute " + attributeName);
+		System.out.println("Adding value " + value + " to nominal attribute " + attributeName);
+		if(value == null || value.equals("")){
+			return null;
+		}
 		while (attribs.hasMoreElements()){
 			Attribute attrib = (Attribute) attribs.nextElement();
 			if(attrib.name().equals(attributeName)){
