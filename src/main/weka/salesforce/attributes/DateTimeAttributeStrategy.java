@@ -20,7 +20,7 @@ public class DateTimeAttributeStrategy extends AttributeStrategy{
 	}
 	
 	@Override
-	public String getValue(Object value){		
+	public String getValue(Object value){
 		DateTime dt = new DateTime(value);
 		return dt.toString("yyyy-MM-dd");
 	}

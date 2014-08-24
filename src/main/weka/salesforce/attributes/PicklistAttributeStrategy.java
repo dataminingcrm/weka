@@ -14,9 +14,6 @@ public class PicklistAttributeStrategy extends AttributeStrategy{
 	
 	@Override
 	public Attribute buildAttribute() {
-		// TODO: This attribute only includes pre-defined picklist values.
-		// Ad-hoc values may appear in the data that are not defined here.
-		// Consider a 2-pass filter that sets range of nominal values based on actual data.
 		int size = this.sField.getPicklistValues().length;
 		FastVector attributeValues = new FastVector(size);
 		
@@ -29,11 +26,6 @@ public class PicklistAttributeStrategy extends AttributeStrategy{
 	
 	@Override
 	public String getValue(Object value) {
-		/* BUG: Actual picklist values may not be defined in PicklistEntry collection when arbitrary values are allowed.
-		 * Resolution options:
-		 * a) Pre-scan with 2 pass filter on training set to accumulate list of actual picklist values
-		 * b) Ignore arbitrary picklist values 
-		 */
 		return value == null ? "" : (String)value;
 	}
 }

@@ -53,21 +53,22 @@ public class SObjectLoader extends SalesforceDataLoader {
 						AttributeStrategy strategy = getAttributeStrategies().get(fieldName);
 						
 						if( strategy.getAttribute().isNominal() && !strategy.containsValue(value) ){
-							System.out.println("********* Nominal attribute missing element: " + value + ". Appending...");
+							//System.out.println("********* Nominal attribute missing element: " + value + ". Appending...");
 							Attribute newAttrib = strategy.appendNominalValue( (String)value );
 							this.getAttributes().setElementAt(newAttrib, newAttrib.index());
-							System.out.println("********* Attribute after append.");
+							//System.out.println("********* Attribute after append.");
 							this.dumpAttribute(newAttrib.name());
 						}
 						
 						if( strategy.getAttribute().isNumeric() || strategy.getAttribute().isDate() ){
-							System.out.println("Adding numeric field. " + fieldName + "=" + strategy.getNumericValue( value ) + ". Strategy " +  strategy.getClass().toString());
+							//System.out.println("Adding numeric field. " + fieldName + "=" + strategy.getNumericValue( value ) + ". Strategy " +  strategy.getClass().toString());
 							instance.setValue(strategy.getAttribute(), strategy.getNumericValue( obj.getField(fieldName) ) );
 						} else {
-							System.out.println("Adding string field. " + fieldName + "=" + strategy.getValue( value ) + ". Strategy " +  strategy.getClass().toString());
+							//System.out.println("Adding string field. " + fieldName + "=" + strategy.getValue( value ) + ". Strategy " +  strategy.getClass().toString());
 							instance.setValue(strategy.getAttribute(), strategy.getValue( value ) );
 						}
 					}
+					this.m_structure.add(instance);
 				}
 			} catch (ConnectionException e) {
 				e.printStackTrace();
@@ -171,12 +172,12 @@ public class SObjectLoader extends SalesforceDataLoader {
 	}*/
 	
 	private void dumpAttribute(String name) throws ConnectionException{
-		System.out.println("Dumping attribute " + name);
+		//System.out.println("Dumping attribute " + name);
 		Attribute attrib = this.getAttribute(name);
 		Enumeration values = attrib.enumerateValues();
 		while (values.hasMoreElements()){
 			String s = (String) values.nextElement();
-			System.out.println("*********Nominal value: " + s);
+			//System.out.println("*********Nominal value: " + s);
 		}
 	}
 	
@@ -233,15 +234,15 @@ public class SObjectLoader extends SalesforceDataLoader {
 	@Override
 	public void setOptions(String[] options) throws Exception{
 		super.setOptions(options);
-				
+		
+		// Note: Utils.getOption also removes the element from the array.
 		this.m_User 	= Utils.getOption("username", options);
 		this.m_Password = Utils.getOption("password", options);
 		this.setToken( Utils.getOption("token", options) );
 		this.m_URL		= Utils.getOption("url", options);
-		this.m_RelationName	= Utils.getOption("relation", options);
-		this.m_Classifier= Utils.getOption("class", options);
-		
-		// Note: Utils.getOption also removes the element from the array.		
+		this.setRelationName( Utils.getOption("relation", options) );
+		this.setClassifer( Utils.getOption("class", options) );
+					
 		String query = Utils.getOption("query", options);
 		if(query != null){
 			this.setQuery(query);
@@ -249,7 +250,14 @@ public class SObjectLoader extends SalesforceDataLoader {
 	}
 	
 	private String m_Classifier = null;
-	public void setClassifer(String c){ this.m_Classifier = c; }
+	public void setClassifer(String c) throws ConnectionException{ 
+		this.m_Classifier = c;
+		Attribute classAttribute = this.getAttribute(c);
+		if(classAttribute != null && this.getDataSet() != null){
+			this.getDataSet().setClass(classAttribute);
+			//this.getDataSet().setClassIndex( classAttribute.index() );
+		}
+	}
 	public String getClassifier(){ return this.m_Classifier; }
 	
 	private String m_RelationName = null;

@@ -1,4 +1,4 @@
-package weka.datagenerators.salesforce;
+package weka.salesforce;
 
 import java.io.FileInputStream;
 import java.io.IOException;

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import weka.datagenerators.salesforce.FlatObjectGenerator;
+import weka.core.converters.salesforce.SObjectLoader;
 
 public class Sobj2arff {
 
@@ -28,7 +28,7 @@ public class Sobj2arff {
 	}
 	
 	public int run() throws Exception{
-		FlatObjectGenerator gen = new FlatObjectGenerator();
+		SObjectLoader dataLoader = new SObjectLoader();
 		List<String> optionList = new ArrayList<String>();
 		
 		/*
@@ -42,7 +42,7 @@ public class Sobj2arff {
 		//optionList.add("-u" + this.getUserName() );
 		
 		String[] options = optionList.toArray(new String[optionList.size()]);
-		gen.setOptions(options);
+		dataLoader.setOptions(options);
 		/*
 		new ARFFBuilder()
 			.withConnection( this.getConnection() )

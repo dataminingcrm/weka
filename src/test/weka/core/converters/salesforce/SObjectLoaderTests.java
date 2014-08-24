@@ -7,7 +7,11 @@ import org.junit.Test;
 
 import com.sforce.soap.partner.QueryResult;
 
-import weka.datagenerators.salesforce.ConfigurableTest;
+import weka.classifiers.trees.J48;
+import weka.core.Instances;
+import weka.filters.Filter;
+import weka.filters.unsupervised.attribute.RemoveType;
+import weka.salesforce.ConfigurableTest;
 import weka.salesforce.attributes.AttributeStrategy;
 
 public class SObjectLoaderTests extends ConfigurableTest {
@@ -79,10 +83,8 @@ public class SObjectLoaderTests extends ConfigurableTest {
 		Assert.assertNotNull( dataLoader.getAttribute("StageName") );
 		Assert.assertNull( dataLoader.getAttribute("foo") );
 		
-		// Modify Attribute tests
-		
+		// Modify Attribute tests	
 	}
-		
 	
 	@Test
 	public void getDataSetTests() throws Exception{
@@ -91,5 +93,42 @@ public class SObjectLoaderTests extends ConfigurableTest {
 		dataLoader.setQuery("SELECT * FROM Opportunity LIMIT 10");
 		Assert.assertFalse( dataLoader.validate().hasErrors() );
 		Assert.assertNotNull( dataLoader.getDataSet() );
+	}
+	
+	@Test
+	public void classifierTests() throws Exception{
+		SObjectLoader dataLoader = this.getConnectedLoader();
+		Assert.assertNull( dataLoader.getClassifier() );
+		
+		dataLoader.setRelationName("Opportunity");
+		dataLoader.setQuery("SELECT * FROM Opportunity LIMIT 20");
+		Assert.assertFalse( dataLoader.validate().hasErrors() );
+		Assert.assertNotNull( dataLoader.getDataSet() );
+		
+		dataLoader.setClassifer("StageName");
+		Assert.assertNotNull( dataLoader.getClassifier() );
+		Assert.assertEquals("StageName", dataLoader.getClassifier() );
+		
+		Instances dataset = dataLoader.getDataSet();
+		System.out.println( dataset.toString() );
+		
+		String[] filterOptions = new String[2];
+		filterOptions[0] = "-T";                            // "Type"
+		filterOptions[1] = "string";						// "string"
+		RemoveType remove = new RemoveType();               // new instance of filter
+		remove.setOptions(filterOptions);                   // set options
+		remove.setInputFormat(dataset);                        // inform filter about dataset **AFTER** setting options
+		Instances newData = Filter.useFilter(dataset, remove);   // apply filter
+		
+		// This classifier won't work with string attributes.
+		// TODO: Need to test filters. Can they dynamically be applied/unapplied?
+		
+		// weka.filters.unsupervised.attribute.RemoveType(string) 
+		String[] options = new String[1];
+		options[0] = "-U";
+		J48 tree = new J48();
+		tree.setOptions(options);
+		tree.buildClassifier(newData);	
+		System.out.println(tree);
 	}
 }
