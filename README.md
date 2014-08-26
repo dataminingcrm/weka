@@ -2,7 +2,7 @@ Data Mining: Practical Machine Learning Techniques for Customer Relationship Man
 
 Weka library with helper classes for Salesforce CRM.
 
-# Open Source License
+## Open Source License
 
 Weka machine learning library extension for importing Salesforce SObjects.
 Copyright (C) 2014  Michael Leach
