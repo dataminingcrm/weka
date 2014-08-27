@@ -1,11 +1,25 @@
 package weka.core.converters.salesforce;
+/*
+Weka machine learning library for Salesforce SObjects.
+Copyright (C) 2014  Michael Leach
 
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+*/
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import junit.framework.Assert;
 import org.junit.Test;
 
-import com.sforce.soap.partner.QueryResult;
+import com.sforce.soap.partner.sobject.SObject;
 
 import weka.classifiers.trees.J48;
 import weka.core.Instances;
@@ -43,14 +57,14 @@ public class SObjectLoaderTests extends ConfigurableTest {
 	public void wildcardQueryTests() throws Exception{
 		SObjectLoader dataLoader = this.getConnectedLoader();
 		dataLoader.setQuery("SELECT * FROM Opportunity LIMIT 10");
-		QueryResult result = dataLoader.getQueryResult();
+		List<SObject> records = dataLoader.getQueryRecords();
 		// Missing required fields: relationName
-		Assert.assertNull(result);
+		Assert.assertNull(records);
 		Assert.assertTrue(dataLoader.hasErrors());
 				
 		dataLoader.setRelationName("Opportunity");
-		result = dataLoader.getQueryResult();
-		Assert.assertNotNull(result);
+		records = dataLoader.getQueryRecords();
+		Assert.assertNotNull(records);
 		Assert.assertFalse(dataLoader.hasErrors());
 		
 		// Wildcard substitution
@@ -63,8 +77,8 @@ public class SObjectLoaderTests extends ConfigurableTest {
 		SObjectLoader dataLoader = this.getConnectedLoader();
 		dataLoader.setRelationName("Opportunity");
 		dataLoader.setQuery("SELECT Id, Name, CreatedDate, Amount, StageName FROM Opportunity LIMIT 10");		
-		QueryResult result = dataLoader.getQueryResult();
-		Assert.assertNotNull(result);
+		List<SObject> records = dataLoader.getQueryRecords();
+		Assert.assertNotNull(records);
 		Assert.assertFalse(dataLoader.hasErrors());
 		Assert.assertEquals(5, dataLoader.getAttributeStrategies().size());
 		Assert.assertEquals(5, dataLoader.getAttributes().size());
@@ -82,8 +96,6 @@ public class SObjectLoaderTests extends ConfigurableTest {
 		
 		Assert.assertNotNull( dataLoader.getAttribute("StageName") );
 		Assert.assertNull( dataLoader.getAttribute("foo") );
-		
-		// Modify Attribute tests	
 	}
 	
 	@Test
@@ -120,10 +132,8 @@ public class SObjectLoaderTests extends ConfigurableTest {
 		remove.setInputFormat(dataset);                        // inform filter about dataset **AFTER** setting options
 		Instances newData = Filter.useFilter(dataset, remove);   // apply filter
 		
-		// This classifier won't work with string attributes.
-		// TODO: Need to test filters. Can they dynamically be applied/unapplied?
-		
-		// weka.filters.unsupervised.attribute.RemoveType(string) 
+		// J28 classifier doesn't work with string attributes.
+		// Use filter to remove string types.
 		String[] options = new String[1];
 		options[0] = "-U";
 		J48 tree = new J48();

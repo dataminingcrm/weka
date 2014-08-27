@@ -1,8 +1,25 @@
 package weka.core.converters.salesforce;
 
+/*
+Weka machine learning library for Salesforce SObjects.
+Copyright (C) 2014  Michael Leach
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+*/
+
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -37,12 +54,12 @@ public class SObjectLoader extends SalesforceDataLoader {
 	public Instances getDataSet(){
 		if( m_structure == null){
 			try {
-				if( this.getQueryResult() == null || this.getQueryResult().getRecords().length == 0){
+				if( this.getQueryRecords() == null || this.getQueryRecords().size() == 0){
 					Errors.add("Query returned 0 rows. Could not generate data set.");
 					return this.m_structure;
 				}
-				m_structure = new Instances(this.getRelationName(), this.getAttributes(), this.getQueryResult().getRecords().length );
-				SObject[] records = this.getQueryResult().getRecords();
+				m_structure = new Instances(this.getRelationName(), this.getAttributes(), this.getQueryRecords().size() );
+				List<SObject> records = this.getQueryRecords();
 				for(SObject obj : records){
 					Instance instance = new Instance( this.getAttributeStrategies().size() );
 					for(String fieldName : this.getAttributeStrategies().keySet()){
@@ -53,18 +70,13 @@ public class SObjectLoader extends SalesforceDataLoader {
 						AttributeStrategy strategy = getAttributeStrategies().get(fieldName);
 						
 						if( strategy.getAttribute().isNominal() && !strategy.containsValue(value) ){
-							//System.out.println("********* Nominal attribute missing element: " + value + ". Appending...");
 							Attribute newAttrib = strategy.appendNominalValue( (String)value );
 							this.getAttributes().setElementAt(newAttrib, newAttrib.index());
-							//System.out.println("********* Attribute after append.");
-							this.dumpAttribute(newAttrib.name());
 						}
 						
 						if( strategy.getAttribute().isNumeric() || strategy.getAttribute().isDate() ){
-							//System.out.println("Adding numeric field. " + fieldName + "=" + strategy.getNumericValue( value ) + ". Strategy " +  strategy.getClass().toString());
 							instance.setValue(strategy.getAttribute(), strategy.getNumericValue( obj.getField(fieldName) ) );
 						} else {
-							//System.out.println("Adding string field. " + fieldName + "=" + strategy.getValue( value ) + ". Strategy " +  strategy.getClass().toString());
 							instance.setValue(strategy.getAttribute(), strategy.getValue( value ) );
 						}
 					}
@@ -91,23 +103,35 @@ public class SObjectLoader extends SalesforceDataLoader {
 		return this;
 	}
 	
-	private QueryResult m_QueryResult = null;
-	public QueryResult getQueryResult() throws ConnectionException{
-		if(m_QueryResult == null){
+	private List<SObject> m_SObjects = null;
+	public List<SObject> getQueryRecords() throws ConnectionException{
+		if(m_SObjects == null){
 			if(this.validate().hasErrors()){
 				return null;
 			}
+			m_SObjects = new ArrayList<SObject>();
 			String soql = this.getQuery();
 			if(soql.toLowerCase().contains("select *")){
 				String allFields = this.getConnection().getAllFieldsByObject( this.getRelationName() );
 				soql = soql.replace("*", allFields);
 				this.setQuery(soql);
 			}
-			// TODO: Implement incremental loader using queryMore. Return a collection of SObjects. 
-			// Currently limited to 10,000 records.
-			m_QueryResult = this.getConnection().getPartnerConnection().query( soql );
+			
+			QueryResult result = this.getConnection().getPartnerConnection().query( soql );
+			boolean done = false;
+			if(result.getSize() > 0){
+				while(!done){
+					SObject[] records = result.getRecords();
+					for(SObject obj : records){ m_SObjects.add(obj); }
+					if (result.isDone()) {
+						done = true;
+					} else {
+						result = this.getConnection().getPartnerConnection().queryMore(result.getQueryLocator());
+					}
+				}
+			}
 		}
-		return m_QueryResult;
+		return m_SObjects;
 	}
 	
 	DescribeSObjectResult m_DescribeSObjectResult = null;
@@ -148,38 +172,6 @@ public class SObjectLoader extends SalesforceDataLoader {
 		}
 		return null;
 	}
-		
-	// normalizeNominalValue
-	/*
-	 * Picklist field metadata defines nominal values.
-	 * Actual instances may contain picklist values not defined in metadata.
-	 * Check for new nominal values and append them here.
-	 */
-	/*
-	public Attribute appendNominalValue(Attribute attrib, String value) throws ConnectionException{
-		Enumeration values = attrib.enumerateValues();
-		FastVector attributeValues = new FastVector();
-		while (values.hasMoreElements()){
-			attributeValues.addElement( (String) values.nextElement() );
-		}
-		attributeValues.addElement( value );
-		
-		Attribute newAttrib = new Attribute( attrib.name(), attributeValues,  attrib.index() );
-		
-		this.getAttributes().setElementAt(newAttrib, attrib.index());
-		//this.dumpAttribute(attributeName);
-		return newAttrib;
-	}*/
-	
-	private void dumpAttribute(String name) throws ConnectionException{
-		//System.out.println("Dumping attribute " + name);
-		Attribute attrib = this.getAttribute(name);
-		Enumeration values = attrib.enumerateValues();
-		while (values.hasMoreElements()){
-			String s = (String) values.nextElement();
-			//System.out.println("*********Nominal value: " + s);
-		}
-	}
 	
 	private Map<String, AttributeStrategy> m_AttributeStrategy = null;
 	public Map<String, AttributeStrategy> getAttributeStrategies() throws ConnectionException{
@@ -189,7 +181,7 @@ public class SObjectLoader extends SalesforceDataLoader {
 			}
 			m_AttributeStrategy = new LinkedHashMap<String, AttributeStrategy>();
 			
-			Iterator<XmlObject> itr = this.getQueryResult().getRecords()[0].getChildren();
+			Iterator<XmlObject> itr = this.getQueryRecords().get(0).getChildren();
 			int columnIndex = 0;
 			while(itr.hasNext()) {
 				XmlObject element = (XmlObject) itr.next();
@@ -220,6 +212,7 @@ public class SObjectLoader extends SalesforceDataLoader {
 		@SuppressWarnings("rawtypes")
 		Vector result = new Vector();
 		
+		// TODO: Add proxy support
 		result.addElement(new Option( "\tSalesforce Username.", "username", 1, "-username"));		
 		result.addElement(new Option( "\tSalesforce Password.", "password", 1, "-password"));
 		result.addElement(new Option( "\tSalesforce Security Token.", "token", 1, "-token"));		
@@ -255,7 +248,6 @@ public class SObjectLoader extends SalesforceDataLoader {
 		Attribute classAttribute = this.getAttribute(c);
 		if(classAttribute != null && this.getDataSet() != null){
 			this.getDataSet().setClass(classAttribute);
-			//this.getDataSet().setClassIndex( classAttribute.index() );
 		}
 	}
 	public String getClassifier(){ return this.m_Classifier; }

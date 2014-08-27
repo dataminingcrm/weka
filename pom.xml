@@ -25,12 +25,12 @@
 	<dependency>
 		<groupId>com.force.api</groupId>
 		<artifactId>force-wsc</artifactId>
-		<version>29.0.0</version>
+		<version>31.0.0</version>
 	</dependency>
 	<dependency>
 		<groupId>com.force.api</groupId>
 		<artifactId>force-partner-api</artifactId>
-		<version>29.0.0</version>
+		<version>31.0.0</version>
 	</dependency>
 	<dependency>
 		<groupId>com.force.api</groupId>
@@ -40,7 +40,7 @@
 	<dependency>
 		<groupId>com.force.api</groupId>
 		<artifactId>force-apex-api</artifactId>
-		<version>29.0.0</version>
+		<version>31.0.0</version>
 	</dependency>
 	
 	<dependency>
@@ -91,7 +91,6 @@
 	</dependency>
   </dependencies>
   <build>
-  	<!-- Note: Output of build should be deployed to /usr/share/ant/lib on a Mac -->
     <finalName>dataminingcrm</finalName>
     <plugins>
         <plugin>

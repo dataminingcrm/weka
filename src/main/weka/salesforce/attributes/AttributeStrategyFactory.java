@@ -1,30 +1,23 @@
 package weka.salesforce.attributes;
+/*
+Weka machine learning library for Salesforce SObjects.
+Copyright (C) 2014  Michael Leach
 
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+*/
 import com.sforce.soap.partner.Field;
 import com.sforce.soap.partner.FieldType;
 
 public class AttributeStrategyFactory {
 	
-	/*
-	 // 1. set up attributes
-	FastVector attributes = new FastVector();
-		
-	// add nominal attribute
-	FastVector catVals = new FastVector(3);
-		catVals.addElement("sports");
-		catVals.addElement("finance");
-		catVals.addElement("news");
-	attributes.addElement(new Attribute("category (att1)", catVals));
-
-     // add numeric attributes
-	attributes.addElement(new Attribute("visits (att2)"));
-	
-	// add string attribute
-	attributes.addElement(new Attribute("title (att3)", (FastVector) null));
-	
-	// add date attribute
-	attributes.addElement(new Attribute("posted (att4)", "yyyy-MM-dd")); //ISO-8601 compliant date string
-	*/
 	public static AttributeStrategy buildStrategy(Field f, int index){
 		if( f.getType().equals( FieldType._boolean) ){
 			return new BooleanAttributeStrategy(f, index);

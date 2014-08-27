@@ -1,33 +1,18 @@
 package weka.salesforce;
+/*
+Weka machine learning library for Salesforce SObjects.
+Copyright (C) 2014  Michael Leach
 
-/* Copyright (c) 2014, Salesforce.com, Inc.  All rights reserved.
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
-- Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-- Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in the
-   documentation and/or other materials provided with the distribution.
- - Neither the name of Salesforce.com nor the names of its contributors
-   may be used to endorse or promote products derived from this
-   software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
-COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
-OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
-USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 */
-
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,14 +27,13 @@ import com.sforce.soap.partner.DescribeSObjectResult;
 import com.sforce.soap.partner.Field;
 import com.sforce.soap.partner.GetServerTimestampResult;
 import com.sforce.soap.partner.GetUserInfoResult;
-import com.sforce.soap.partner.LimitInfo;
 import com.sforce.soap.partner.LoginResult;
 import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.ws.ConnectionException;
 import com.sforce.ws.ConnectorConfig;
 
 public class SalesforceConnection {
-	public final static String API_VERSION	= "29.0";
+	public final static String API_VERSION	= "31.0";
 	private String client_id		= "client_id_goes_here"; // For OAuth connections
 	private String login_url 		= "https://login.salesforce.com/services/Soap/u/" + this.API_VERSION;
 	private String instance_url		= null; // Example: https://na1.salesforce.com/
@@ -422,44 +406,7 @@ public class SalesforceConnection {
 	public SoapConnection getApexConnection() {
 		return this.apexConnection;
 	}
-	
-	public double getCurrentAPIUsage(){
-		LimitInfo[] limitInfoResult = this.getPartnerConnection().getLimitInfoHeader().getLimitInfo();
-		double limit 					= 0;
-		double currentUsage 			= 0;
-		double percentageUsed 			= 0.0; 
-		String formattedPercentageUsed 	= "0.0";
-
-		for(LimitInfo info : limitInfoResult){
-			if(!info.getType().equals("API REQUESTS")){
-				System.err.println("Was expecting LimitInfo type to be API REQUESTS. But was " + info.getType());
-				continue;
-			}
-			limit = info.getLimit();
-			currentUsage = info.getCurrent();
-			percentageUsed = ( currentUsage / limit ) * 100.0;
-			System.out.println("percentageUsed: " + formattedPercentageUsed);
-			
-			break;
-		}
-		return percentageUsed;
-	}
-	
-	public double getAPILimit(){
-		LimitInfo[] limitInfoResult = this.getPartnerConnection().getLimitInfoHeader().getLimitInfo();
-		double limit = 0;
 		
-		for(LimitInfo info : limitInfoResult){
-			if(!info.getType().equals("API REQUESTS")){
-				System.err.println("Was expecting LimitInfo type to be API REQUESTS. But was " + info.getType());
-				continue;
-			}
-			limit = info.getLimit();
-			break;
-		}
-		return limit;
-	}
-	
 	public String getAllFieldsByObject(String sobjectName){
 		String field_list = "";
 		

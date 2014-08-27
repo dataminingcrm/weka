@@ -4,7 +4,7 @@ Weka library with helper classes for Salesforce CRM.
 
 ## Open Source License
 
-Weka machine learning library extension for importing Salesforce SObjects.
+Weka machine learning library for Salesforce SObjects.
 Copyright (C) 2014  Michael Leach
 
 This program is free software; you can redistribute it and/or
