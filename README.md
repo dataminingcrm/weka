@@ -3,7 +3,10 @@
 Weka library with helper classes for Salesforce CRM.
 
 ### Usage:
-java weka.core.converters.SalesforceDataLoader -username <SFDC username> -password <SFDC password> -token <SFDC token> -url <SFDC Login URL> -query <SOQL dataset to retrieve> -relation <SObject Name (typically FROM clause in SOQL)> -class <Query result field name used as classifier>
+
+```
+java weka.core.converters.SalesforceDataLoader -username {SFDC username} -password {SFDC password} -token {SFDC token} -url {SFDC Login URL} -query {SOQL dataset to retrieve} -relation {SObject Name (typically FROM clause in SOQL)} -class {Query result field name used as classifier}
+```
 
 ## Open Source License
 
