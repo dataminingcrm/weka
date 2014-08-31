@@ -40,10 +40,9 @@ username=username@domain.org		Salesforce username.
 password=org_password			Salesforce password.
 token=security_token			Salesforce security token.
 dataSource=Opportunity			The Salesforce object (table) to be converted to ARFF.
-query=SELECT * FROM Opportunity WHERE IsWon=true 	The SOQL query to be executed.
+query=SELECT * FROM Opportunity  	The SOQL query to be executed.
 class=IsWon				The field on dataSource to be used as classifer.
 ```
-
 
 test.properties
 Same as config.properties, but used by JUnit tests (for Developers making changes to source code).
@@ -62,5 +61,4 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-
 

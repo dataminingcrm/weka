@@ -82,6 +82,12 @@ public class SObjectLoader extends SalesforceDataLoader {
 					}
 					this.m_structure.add(instance);
 				}
+				if(this.getClassifier() != null){
+					Attribute classAttribute = this.getAttribute(this.getClassifier());
+					if(classAttribute != null){
+						this.getDataSet().setClass(classAttribute);
+					}
+				}
 			} catch (ConnectionException e) {
 				e.printStackTrace();
 			}
@@ -188,7 +194,7 @@ public class SObjectLoader extends SalesforceDataLoader {
 				String attributeName = element.getName().getLocalPart();
 				Field f = this.getField(attributeName);
 				if( f == null ){
-					System.out.println("Couldn't find AttributeStrategy for field: " + attributeName);
+					//System.out.println("Couldn't find AttributeStrategy for field: " + attributeName);
 					continue;
 				}
 				AttributeStrategy strategy = AttributeStrategyFactory.buildStrategy(f, columnIndex++);
@@ -226,30 +232,23 @@ public class SObjectLoader extends SalesforceDataLoader {
 	
 	@Override
 	public void setOptions(String[] options) throws Exception{
-		super.setOptions(options);
-		
 		// Note: Utils.getOption also removes the element from the array.
-		this.m_User 	= Utils.getOption("username", options);
-		this.m_Password = Utils.getOption("password", options);
+		this.setUser( Utils.getOption("username", options) );
+		this.setPassword( Utils.getOption("password", options) );
 		this.setToken( Utils.getOption("token", options) );
-		this.m_URL		= Utils.getOption("url", options);
+		this.setUrl( Utils.getOption("url", options) );
 		this.setRelationName( Utils.getOption("relation", options) );
 		this.setClassifer( Utils.getOption("class", options) );
-					
 		String query = Utils.getOption("query", options);
 		if(query != null){
 			this.setQuery(query);
 		}
+		
+		super.setOptions(options);
 	}
 	
 	private String m_Classifier = null;
-	public void setClassifer(String c) throws ConnectionException{ 
-		this.m_Classifier = c;
-		Attribute classAttribute = this.getAttribute(c);
-		if(classAttribute != null && this.getDataSet() != null){
-			this.getDataSet().setClass(classAttribute);
-		}
-	}
+	public void setClassifer(String c) { this.m_Classifier = c; }
 	public String getClassifier(){ return this.m_Classifier; }
 	
 	private String m_RelationName = null;

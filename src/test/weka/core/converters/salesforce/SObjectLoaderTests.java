@@ -13,9 +13,11 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import junit.framework.Assert;
 import org.junit.Test;
 
@@ -31,17 +33,21 @@ import weka.salesforce.attributes.AttributeStrategy;
 public class SObjectLoaderTests extends ConfigurableTest {
 
 	@Test
-	public void connectionTests() throws Exception{
-		Properties props = this.config();
-		Assert.assertNotNull(props);
-		Assert.assertNotNull(props.getProperty("username"), "Expected to find test.properties file with a setting for 'username'");
-		Assert.assertNotNull(props.getProperty("password"), "Expected to find test.properties file with a setting for 'password'");
-		Assert.assertNotNull(props.getProperty("url"), "Expected to find test.properties file with a setting for 'url'");
+	public void connectionTests() throws Exception {
+		Assert.assertNotNull(config());
+		Assert.assertNotNull(config().getProperty("username"), "Expected to find test.properties file with a setting for 'username'");
+		Assert.assertNotNull(config().getProperty("password"), "Expected to find test.properties file with a setting for 'password'");
+		Assert.assertNotNull(config().getProperty("url"), "Expected to find test.properties file with a setting for 'url'");
 		
-		final String SFDC_USERNAME 	= props.getProperty("username");
-		final String SFDC_PASSWORD 	= props.getProperty("password");
-		final String SFDC_TOKEN 	= props.getProperty("token");
-		final String SFDC_URL 		= props.getProperty("url");
+		final String SFDC_USERNAME 	= config().getProperty("username");
+		final String SFDC_PASSWORD 	= config().getProperty("password");
+		final String SFDC_TOKEN 	= config().getProperty("token");
+		final String SFDC_URL 		= config().getProperty("url");
+		
+		// This override prevents writes to STDERR to ensure a clean pipe output.
+		System.setErr(new PrintStream(new OutputStream() {
+			public void write(int b) {}
+		}));
 		
 		SObjectLoader dataLoader = new SObjectLoader();
 		
@@ -51,6 +57,51 @@ public class SObjectLoaderTests extends ConfigurableTest {
 		dataLoader.setToken( SFDC_TOKEN );
 		
 		Assert.assertEquals(true, dataLoader.getConnection().isValid() ); // Future tests require a valid connection.
+		
+		Assert.assertEquals(config().getProperty("url"), dataLoader.getUrl() );
+		Assert.assertEquals(config().getProperty("username"), dataLoader.getUser() );		
+		Assert.assertEquals(config().getProperty("password"), dataLoader.getPassword() );
+		Assert.assertEquals(config().getProperty("token"), dataLoader.getToken() );
+	}
+		
+	@Test
+	public void setOptionsTests() throws Exception{
+		SObjectLoader dataLoader = new SObjectLoader();
+		List<String> optionList = new ArrayList<String>();
+		
+		optionList.add("-url");
+		optionList.add( (String) config().getProperty("url") );
+		
+		optionList.add("-username");
+		optionList.add( (String) config().getProperty("username") );
+		
+		optionList.add("-password");
+		optionList.add( (String) config().getProperty("password") );
+		
+		optionList.add("-token");
+		optionList.add( (String) config().getProperty("token") );
+		
+		optionList.add("-query");
+		optionList.add( (String) config().getProperty("query") );
+		
+		optionList.add("-relation");
+		optionList.add( (String) config().getProperty("relation") );
+		
+		optionList.add("class");
+		optionList.add( (String) this.config().getProperty("class") );
+		
+		String[] options = optionList.toArray( new String[optionList.size()] );
+		
+		dataLoader.setOptions( options );
+		
+		Assert.assertEquals(config().getProperty("url"), dataLoader.getUrl() );
+		Assert.assertEquals(config().getProperty("username"), dataLoader.getUser() );		
+		Assert.assertEquals(config().getProperty("password"), dataLoader.getPassword() );
+		Assert.assertEquals(config().getProperty("query"), dataLoader.getQuery() );
+		Assert.assertEquals(config().getProperty("token"), dataLoader.getToken() );
+		Assert.assertEquals(config().getProperty("relation"), dataLoader.getRelationName() );
+				
+		Assert.assertEquals(true, dataLoader.getConnection().isValid() );
 	}
 	
 	@Test
@@ -114,11 +165,11 @@ public class SObjectLoaderTests extends ConfigurableTest {
 		
 		dataLoader.setRelationName("Opportunity");
 		dataLoader.setQuery("SELECT * FROM Opportunity LIMIT 20");
-		Assert.assertFalse( dataLoader.validate().hasErrors() );
-		Assert.assertNotNull( dataLoader.getDataSet() );
-		
 		dataLoader.setClassifer("StageName");
 		Assert.assertNotNull( dataLoader.getClassifier() );
+		
+		Assert.assertFalse( dataLoader.validate().hasErrors() );
+		Assert.assertNotNull( dataLoader.getDataSet() );
 		Assert.assertEquals("StageName", dataLoader.getClassifier() );
 		
 		Instances dataset = dataLoader.getDataSet();

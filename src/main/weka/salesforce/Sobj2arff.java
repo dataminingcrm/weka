@@ -16,10 +16,13 @@ GNU General Public License for more details.
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import weka.core.Instances;
 import weka.core.converters.salesforce.SObjectLoader;
 
 public class Sobj2arff {
@@ -40,60 +43,74 @@ public class Sobj2arff {
 		return this;
 	}
 	
-	public int run() throws Exception{
-		SObjectLoader dataLoader = new SObjectLoader();
+	public Sobj2arff run() throws Exception {
+		if(this.config() == null){
+			System.err.println("Missing config.properties file.");
+			System.exit(1);
+		}
 		List<String> optionList = new ArrayList<String>();
 		
 		/*
 		 * -username=username
 		 * -password=password
-		 * -server=server_URL
+		 * -url=url
 		 * -token=token
-		 * -classifier=class name
-		 * -object=object name
+		 * -class=class name
+		 * -relation=object name
+		 * -query=SOQL
 		 */
-		//optionList.add("-u" + this.getUserName() );
+		
+		if( this.config().getProperty("username") != null ){
+			optionList.add("-username");
+			optionList.add( (String) this.config().getProperty("username") );
+		}
+		
+		if( this.config().getProperty("password") != null ){
+			optionList.add("-password");
+			optionList.add( (String) this.config().getProperty("password") );
+		}
+		
+		if( this.config().getProperty("url") != null ){
+			optionList.add("-url");
+			optionList.add( (String) this.config().getProperty("url") );
+		}
+		
+		if( this.config().getProperty("token") != null ){
+			optionList.add("-token");
+			optionList.add( (String) this.config().getProperty("token") );
+		}
+		
+		if( this.config().getProperty("query") != null ){
+			optionList.add("-query");
+			optionList.add( (String) this.config().getProperty("query") );
+		}
+		
+		if( this.config().getProperty("relation") != null ){
+			optionList.add("-relation");
+			optionList.add( (String) this.config().getProperty("relation") );
+		}
+		
+		if( this.config().getProperty("class") != null ){
+			optionList.add("-class");
+			optionList.add( (String) this.config().getProperty("class") );
+		}
 		
 		String[] options = optionList.toArray(new String[optionList.size()]);
+		
+		// The base data loader throws STDERR messages. Squelch here to ensure a clean pipe output.
+		System.setErr(new PrintStream(new OutputStream() {
+		    public void write(int b) {
+		    }
+		}));
+		
+		SObjectLoader dataLoader = new SObjectLoader();
 		dataLoader.setOptions(options);
-		/*
-		new ARFFBuilder()
-			.withConnection( this.getConnection() )
-			.withDataSource( this.getDataSource() )
-			.withClass( this.config().getProperty("class") )
-			.build();
-		*/
-		return 0;
+		Instances data = dataLoader.getDataSet();
+		System.out.println( data.toString() );
+		
+		return this;
 	}
-	
-	private SalesforceConnection connection = null;
-	private SalesforceConnection getConnection(){
-		if(connection == null){
-			connection = new SalesforceConnection()
-				.withUsername( config().getProperty("username") )
-				.withPassword( config().getProperty("password") )
-				.withSecurityToken( config().getProperty("token") )
-				.withLoginUrl( config().getProperty("url") )
-				.connectWithUserCredentials();
-			
-			if( !connection.isValid() ){
-				System.err.println("Could not establish Salesforce connection. Please check config.properties file.");
-			}
-		}
-		return connection;
-	}
-	
-	private String getDataSource(){
-		if(commandLineArgs.length > 0 ){
-			return commandLineArgs[0];
-		}
-		else if( config().getProperty("dataSource") != null){
-			return config().getProperty("dataSource");
-		} else {
-			return "Opportunity";
-		}
-	}
-	
+		
 	private Properties configProperties = null;
 	private Properties config(){
 		if(configProperties == null){

@@ -2,6 +2,6 @@ url=https://login.salesforce.com
 username=username@domain.org
 password=org_password
 token=security_token
-dataSource=Opportunity
-query=SELECT * FROM Opportunity WHERE IsWon=true
+relation=Opportunity
+query=SELECT * FROM Opportunity LIMIT 500
 class=IsWon
