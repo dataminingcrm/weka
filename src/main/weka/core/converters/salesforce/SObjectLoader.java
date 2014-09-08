@@ -157,17 +157,6 @@ public class SObjectLoader extends SalesforceDataLoader {
 		return null;
 	}
 	
-	FastVector m_Attributes = null;
-	public FastVector getAttributes() throws ConnectionException{
-		if ( m_Attributes == null ){
-			m_Attributes = new FastVector();
-			for(String key : this.getAttributeStrategies().keySet()){
-				m_Attributes.addElement( this.getAttributeStrategies().get(key).getAttribute() );			
-			}
-		}
-		return m_Attributes;
-	}
-	
 	public Attribute getAttribute(String name) throws ConnectionException{
 		Enumeration v = this.getAttributes().elements();
 		while (v.hasMoreElements()){
@@ -177,6 +166,23 @@ public class SObjectLoader extends SalesforceDataLoader {
 			}
 		}
 		return null;
+	}
+	
+	FastVector m_Attributes = null;
+	public FastVector getAttributes() throws ConnectionException{
+		if ( m_Attributes == null ){
+			m_Attributes = new FastVector();
+			for(String key : this.getAttributeStrategies().keySet()){
+				if( this.isClassifier(key)){
+					continue;
+				}
+				m_Attributes.addElement( this.getAttributeStrategies().get(key).getAttribute() );			
+			}
+			if( this.getClassifier() != null ){
+				m_Attributes.addElement( this.getAttributeStrategies().get( this.getClassifier() ).getAttribute() );
+			}
+		}
+		return m_Attributes;
 	}
 	
 	private Map<String, AttributeStrategy> m_AttributeStrategy = null;
@@ -250,6 +256,10 @@ public class SObjectLoader extends SalesforceDataLoader {
 	private String m_Classifier = null;
 	public void setClassifer(String c) { this.m_Classifier = c; }
 	public String getClassifier(){ return this.m_Classifier; }
+	
+	private boolean isClassifier(String name){
+		return (this.getClassifier() != null && this.getClassifier().equals(name) );
+	}
 	
 	private String m_RelationName = null;
 	public void setRelationName(String rName){ this.m_RelationName = rName; }
