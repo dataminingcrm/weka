@@ -49,7 +49,7 @@ public abstract class AttributeStrategy {
 	}
 	
 	public String getValue(Object value){
-		return (value == null ? "" : (String)value);
+		return (value == null ? "?" : (String)value);
 	};
 	
 	public boolean containsValue(Object value) throws ConnectionException{

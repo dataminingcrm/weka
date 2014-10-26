@@ -39,6 +39,6 @@ public class PicklistAttributeStrategy extends AttributeStrategy{
 	
 	@Override
 	public String getValue(Object value) {
-		return value == null ? "" : (String)value;
+		return value == null ? "?" : (String)value;
 	}
 }

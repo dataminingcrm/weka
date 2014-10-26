@@ -75,7 +75,11 @@ public class SObjectLoader extends SalesforceDataLoader {
 						}
 						
 						if( strategy.getAttribute().isNumeric() || strategy.getAttribute().isDate() ){
-							instance.setValue(strategy.getAttribute(), strategy.getNumericValue( obj.getField(fieldName) ) );
+							if( obj.getField(fieldName) == null ){
+								instance.setValue(strategy.getAttribute(),"?");
+							} else {
+								instance.setValue(strategy.getAttribute(), strategy.getNumericValue( obj.getField(fieldName) ) );
+							}
 						} else {
 							instance.setValue(strategy.getAttribute(), strategy.getValue( value ) );
 						}
