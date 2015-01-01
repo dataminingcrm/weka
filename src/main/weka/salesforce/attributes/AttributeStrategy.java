@@ -31,6 +31,10 @@ public abstract class AttributeStrategy {
 		this.setAttribute( this.buildAttribute() );
 	}
 	
+	public Field getField(){
+		return sField;
+	}
+	
 	private Attribute m_attribute = null;
 	public void setAttribute(Attribute attrib){ this.m_attribute = attrib; }
 	public Attribute getAttribute(){
